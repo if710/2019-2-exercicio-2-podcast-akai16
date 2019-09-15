@@ -1,5 +1,6 @@
 package br.ufpe.cin.android.podcast
 
+import android.util.Log
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import org.xmlpull.v1.XmlPullParserFactory
@@ -99,6 +100,8 @@ object Parser {
         var link: String? = null
         var pubDate: String? = null
         var description: String? = null
+        var downloadLink: String? = null
+        var image: String? = null
         parser.require(XmlPullParser.START_TAG, null, "item")
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.eventType != XmlPullParser.START_TAG) {
@@ -113,11 +116,19 @@ object Parser {
                 pubDate = readData(parser, "pubDate")
             } else if (name == "description") {
                 description = readData(parser, "description")
+            } else if (name == "downloadLink") {
+                downloadLink = readData(parser, "downloadLink")
+            } else if (name == "itunes:image") {
+                image = parser.getAttributeValue(null, "href")
+                skip(parser)
             } else {
                 skip(parser)
             }
         }
-        return ItemFeed(title!!, link!!, pubDate!!, description!!, "carregar o link")
+        // Como nem todos os xmls possuem a tag downloadLink, o operador elvis subsititui as ocasiões
+        // em que downloadLink igual a nulo. Isso evita crashes na aplicação uma vez que os atributos
+        // de ItemFeed não são opcionais.
+        return ItemFeed(title!!, link!!, pubDate!!, description!!, downloadLink ?: "", image)
     }
 
     // Processa tags de forma parametrizada no feed.
@@ -153,6 +164,5 @@ object Parser {
         }
     }
 
-    /**/
 
 }
